@@ -16,7 +16,6 @@ export default function CreateEcho() {
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
   const [trackUrl, setTrackUrl] = useState("");
-  const [trackUrl, setTrackUrl] = useState("");
   const [trackInfo, setTrackInfo] = useState({ name: "", artist: "" });
   const [showTrackInput, setShowTrackInput] = useState(false);
 
@@ -30,6 +29,13 @@ export default function CreateEcho() {
       router.push('/login');
     } else {
       setUser(session.user);
+      // Detect location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          setLat(position.coords.latitude);
+          setLng(position.coords.longitude);
+        });
+      }
     }
   }
   
