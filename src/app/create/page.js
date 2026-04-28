@@ -9,9 +9,23 @@ import { useRouter } from "next/navigation";
 
 export default function CreateEcho() {
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [content, setContent] = useState("");
   const [vibe, setVibe] = useState(50);
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    checkUser();
+  }, []);
+
+  async function checkUser() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push('/login');
+    } else {
+      setUser(session.user);
+    }
+  }
   
   // Datos temporales de track para el ejemplo
   const [track, setTrack] = useState({
@@ -29,14 +43,14 @@ export default function CreateEcho() {
         .from('encounters')
         .insert([
           {
-            handle: "Astrid_99", // Aquí iría el usuario logueado
+            handle: user.user_metadata.username || user.email.split('@')[0],
             content: content,
             status: vibe > 50 ? "RESISTED" : "VANISHED",
             tags: ["MANIFEST", "ATMOSPHERE"],
             track_name: track.name,
             track_artist: track.artist,
             track_video_id: track.videoId,
-            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"
+            avatar: user.user_metadata.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`
           }
         ]);
 
@@ -114,22 +128,73 @@ export default function CreateEcho() {
               </div>
             </div>
 
-            {/* Spotify Integration UI */}
-            <div className="glass-card rounded-xl p-6 space-y-4 flex flex-col justify-center">
+            {/* YouTube Atmosphere Selector */}
+            <div className="glass-card rounded-xl p-6 space-y-4 relative overflow-hidden group">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-tertiary">Atmosphere</h3>
-                <span className="material-symbols-outlined text-[#1DB954] text-sm">brand_awareness</span>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500">Atmosphere</h3>
+                <span className="material-symbols-outlined text-red-500 text-sm animate-pulse">brand_awareness</span>
               </div>
               
-              <button className="flex items-center gap-3 p-3 bg-black/40 rounded-xl border border-white/5 hover:border-red-500/40 transition-all text-left">
-                <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-                  <span className="material-symbols-outlined text-red-500">video_library</span>
+              {!showTrackInput ? (
+                <button 
+                  onClick={() => setShowTrackInput(true)}
+                  className="w-full flex items-center gap-3 p-3 bg-black/40 rounded-xl border border-white/5 hover:border-red-500/40 transition-all text-left group"
+                >
+                  <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500/40 transition-colors">
+                    <span className="material-symbols-outlined text-red-500 text-lg">
+                      {track.videoId ? "edit" : "add_box"}
+                    </span>
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="text-xs font-bold text-slate-300 truncate">
+                      {track.videoId ? track.name : "Link YouTube Atmosphere"}
+                    </p>
+                    <p className="text-[10px] text-slate-600 uppercase tracking-tighter truncate">
+                      {track.videoId ? track.artist : "Search for a soundtrack"}
+                    </p>
+                  </div>
+                </button>
+              ) : (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <input 
+                    type="text"
+                    value={trackUrl}
+                    onChange={(e) => setTrackUrl(e.target.value)}
+                    placeholder="Paste YouTube Link..."
+                    className="w-full bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] focus:outline-none focus:border-red-500/40"
+                  />
+                  <div className="flex gap-2">
+                    <input 
+                      type="text"
+                      value={trackInfo.name}
+                      onChange={(e) => setTrackInfo({...trackInfo, name: e.target.value})}
+                      placeholder="Song Name"
+                      className="flex-1 bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] focus:outline-none focus:border-red-500/40"
+                    />
+                    <input 
+                      type="text"
+                      value={trackInfo.artist}
+                      onChange={(e) => setTrackInfo({...trackInfo, artist: e.target.value})}
+                      placeholder="Artist"
+                      className="flex-1 bg-black/60 border border-white/10 rounded-lg p-2 text-[10px] focus:outline-none focus:border-red-500/40"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={handleAddTrack}
+                      className="flex-1 py-2 bg-red-500/20 text-red-500 text-[10px] font-bold uppercase rounded-lg hover:bg-red-500/30 transition-all"
+                    >
+                      Apply
+                    </button>
+                    <button 
+                      onClick={() => setShowTrackInput(false)}
+                      className="px-4 py-2 bg-slate-800 text-slate-400 text-[10px] font-bold uppercase rounded-lg hover:bg-slate-700 transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-300">Link YouTube Atmosphere</p>
-                  <p className="text-[10px] text-slate-600 uppercase tracking-tighter">Free & Unlimited Audio</p>
-                </div>
-              </button>
+              )}
             </div>
           </section>
 

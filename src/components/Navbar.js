@@ -1,28 +1,64 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
 const Navbar = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
-    <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-slate-950/40 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+    <nav className="fixed top-0 left-0 w-full z-50 px-6 py-4 flex justify-between items-center bg-background/50 backdrop-blur-xl border-b border-white/5">
+      <Link href="/" className="text-2xl font-black tracking-tighter text-glow uppercase hover:opacity-80 transition-opacity">
+        Echoes
+      </Link>
+      
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-black tracking-[0.2em] text-tertiary text-glow uppercase">
-          ECHOES
-        </h1>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="w-8 h-8 rounded-full border border-white/20 bg-surface flex items-center justify-center overflow-hidden">
-          <img
-            alt="User Profile"
-            className="w-full h-full object-cover"
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100"
-          />
-        </div>
-        <button className="text-tertiary hover:text-cyan-300 transition-colors">
+        {user ? (
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={handleLogout}
+              className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-white transition-colors"
+            >
+              Disconnect
+            </button>
+            <Link href="/profile" className="w-10 h-10 rounded-full border border-tertiary/30 p-0.5 hover:border-tertiary transition-all">
+              <img 
+                src={user.user_metadata.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`} 
+                alt="Profile" 
+                className="w-full h-full rounded-full object-cover"
+              />
+            </Link>
+          </div>
+        ) : (
+          <Link 
+            href="/login" 
+            className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
+          >
+            Reconnect
+          </Link>
+        )}
+        <button className="text-slate-400 hover:text-tertiary transition-colors">
           <span className="material-symbols-outlined">notifications</span>
         </button>
       </div>
-    </header>
+    </nav>
   );
 };
 

@@ -51,16 +51,52 @@ const EchoCard = ({ encounter }) => {
         </p>
 
         {track && (
-          <div className={`mb-6 flex items-center gap-3 p-3 bg-black/20 rounded-xl border transition-all ${isSyncing ? "border-red-500/40" : "border-white/5"} w-fit`}>
-            <div className={`w-8 h-8 rounded flex items-center justify-center ${isSyncing ? "bg-red-500/20" : "bg-red-500/10"}`}>
-              <span className={`material-symbols-outlined text-red-500 text-sm ${isSyncing ? "animate-pulse" : ""}`}>
-                {isSyncing ? "pause_circle" : "play_circle"}
+          <div className={`group/track mb-6 flex items-center gap-4 p-4 rounded-2xl border transition-all duration-500 relative overflow-hidden ${
+            isSyncing 
+            ? "bg-red-500/10 border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.15)]" 
+            : "bg-black/40 border-white/5 hover:border-white/20 hover:bg-black/60"
+          }`}>
+            {/* Animated Background Pulse */}
+            {isSyncing && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.1 }}
+                className="absolute inset-0 bg-red-500 blur-2xl"
+              />
+            )}
+
+            <button 
+              onClick={() => setIsSyncing(!isSyncing)}
+              className={`relative z-10 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 ${
+                isSyncing ? "bg-red-500 text-white" : "bg-white/5 text-slate-400 group-hover/track:bg-white/10 group-hover/track:text-red-500"
+              }`}
+            >
+              <span className={`material-symbols-outlined text-2xl ${isSyncing ? "animate-pulse" : ""}`}>
+                {isSyncing ? "pause" : "play_arrow"}
               </span>
+            </button>
+
+            <div className="relative z-10 flex-1 min-w-0">
+              <p className="text-xs font-black text-foreground truncate tracking-tight uppercase">
+                {track.name}
+              </p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mt-1 truncate">
+                {track.artist} · Atmosphere
+              </p>
             </div>
-            <div className="pr-4">
-              <p className="text-[10px] font-bold text-slate-300 leading-none">{track.name}</p>
-              <p className="text-[8px] text-slate-600 uppercase tracking-tighter mt-1">{track.artist} · YouTube Atmosphere</p>
-            </div>
+
+            {isSyncing && (
+              <div className="flex gap-1 pr-2">
+                {[1, 2, 3].map((i) => (
+                  <motion.div
+                    key={i}
+                    animate={{ height: [4, 12, 4] }}
+                    transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
+                    className="w-1 bg-red-500/60 rounded-full"
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
         
