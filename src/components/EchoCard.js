@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import YouTubePlayer from "./YouTubePlayer";
+import Link from "next/link";
 
 const EchoCard = ({ encounter }) => {
   const { user, content, time, status, tags, track } = encounter;

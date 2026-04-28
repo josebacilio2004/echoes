@@ -38,6 +38,7 @@ export default function Home() {
         tags: item.tags,
         lat: item.lat,
         lng: item.lng,
+        userId: item.user_id,
         track: item.track_video_id ? {
           name: item.track_name,
           artist: item.track_artist,

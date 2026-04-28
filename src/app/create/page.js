@@ -86,7 +86,8 @@ export default function CreateEcho() {
             track_video_id: track.videoId,
             avatar: user.user_metadata.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`,
             lat: lat,
-            lng: lng
+            lng: lng,
+            user_id: user.id
           }
         ]);
 
