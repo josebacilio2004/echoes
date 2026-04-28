@@ -4,11 +4,51 @@ import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 export default function CreateEcho() {
+  const router = useRouter();
   const [content, setContent] = useState("");
   const [vibe, setVibe] = useState(50);
-  const [aura, setAura] = useState(50);
+  const [loading, setLoading] = useState(false);
+  
+  // Datos temporales de track para el ejemplo
+  const [track, setTrack] = useState({
+    name: "me dolerás para siempre",
+    artist: "STRANGEHUMAN",
+    videoId: "TY1id4Rowxg"
+  });
+
+  const handleManifest = async () => {
+    if (!content.trim()) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('encounters')
+        .insert([
+          {
+            handle: "Astrid_99", // Aquí iría el usuario logueado
+            content: content,
+            status: vibe > 50 ? "RESISTED" : "VANISHED",
+            tags: ["MANIFEST", "ATMOSPHERE"],
+            track_name: track.name,
+            track_artist: track.artist,
+            track_video_id: track.videoId,
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200"
+          }
+        ]);
+
+      if (error) throw error;
+      
+      router.push('/');
+    } catch (error) {
+      alert("Error al manifestar el eco: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -98,9 +138,17 @@ export default function CreateEcho() {
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="group relative px-16 py-5 bg-tertiary text-slate-950 font-bold rounded-full shadow-[0_0_20px_rgba(47,217,244,0.4)] hover:shadow-[0_0_30px_rgba(47,217,244,0.6)] transition-all duration-300"
+              onClick={handleManifest}
+              disabled={loading || !content.trim()}
+              className={`group relative px-16 py-5 font-bold rounded-full transition-all duration-300 ${
+                loading || !content.trim() 
+                ? "bg-slate-800 text-slate-600 cursor-not-allowed" 
+                : "bg-tertiary text-slate-950 shadow-[0_0_20px_rgba(47,217,244,0.4)] hover:shadow-[0_0_30px_rgba(47,217,244,0.6)]"
+              }`}
             >
-              <span className="relative z-10 uppercase tracking-[0.3em]">Manifest</span>
+              <span className="relative z-10 uppercase tracking-[0.3em]">
+                {loading ? "Manifesting..." : "Manifest"}
+              </span>
             </motion.button>
             <p className="mt-6 text-[10px] font-bold text-slate-600 uppercase tracking-[0.15em]">
               Your resonance will ripple across the network

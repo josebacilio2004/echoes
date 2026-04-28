@@ -1,53 +1,54 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import EchoCard from "@/components/EchoCard";
-
-const MOCK_ENCOUNTERS = [
-  {
-    id: 1,
-    user: {
-      name: "Kaelen",
-      handle: "Kaelen_01",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100",
-    },
-    content: "The frequency shift near the monolith was undeniable. I felt the resonance before I saw the trace. Minimal data leakage, but the echo remains visible on the lower spectral bands.",
-    time: "04:22 AM",
-    status: "RESISTED",
-    tags: ["SIG_TRACE_99", "MONOLITH"],
-    track: { name: "Midnight City", artist: "M83", videoId: "dX3kKvKyH6w" },
-  },
-  {
-    id: 2,
-    user: {
-      name: "V Spectral",
-      handle: "V_Spectral",
-      avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=100",
-    },
-    content: '"We are just ripples in a dark lake. The surface never truly stays still."',
-    time: "01:15 AM",
-    status: "VANISHED",
-    tags: ["PHILOSOPHY", "VOID"],
-    track: { name: "After Dark", artist: "Mr.Kitty", videoId: "waAlgFq9Xq8" },
-  },
-  {
-    id: 3,
-    user: {
-      name: "Strange_Soul",
-      handle: "STRANGE_HUMAN_FAN",
-      avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&q=80&w=100",
-    },
-    content: "Sentí que el tiempo se detenía cuando pasaste a mi lado. Esta canción sonaba en mis audífonos y ahora cada vez que la escucho, te veo de nuevo.",
-    time: "11:11 PM",
-    status: "RESISTED",
-    tags: ["NOSTALGIA", "MEMORIA"],
-    track: { name: "me dolerás para siempre", artist: "STRANGEHUMAN", videoId: "TY1id4Rowxg" },
-  }
-];
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
+  const [encounters, setEncounters] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEncounters();
+  }, []);
+
+  async function fetchEncounters() {
+    try {
+      const { data, error } = await supabase
+        .from('encounters')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Transformar datos de la DB al formato del componente
+      const formattedData = data.map(item => ({
+        id: item.id,
+        user: {
+          name: item.handle,
+          handle: item.handle,
+          avatar: item.avatar || `https://ui-avatars.com/api/?name=${item.handle}&background=0D8ABC&color=fff`,
+        },
+        content: item.content,
+        time: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: item.status,
+        tags: item.tags,
+        track: item.track_video_id ? {
+          name: item.track_name,
+          artist: item.track_artist,
+          videoId: item.track_video_id
+        } : null
+      }));
+
+      setEncounters(formattedData);
+    } catch (error) {
+      console.error("Error fetching encounters:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <div className="flex-1 flex flex-col">
       <Navbar />
@@ -73,9 +74,17 @@ export default function Home() {
             </header>
 
             <div className="space-y-6">
-              {MOCK_ENCOUNTERS.map(encounter => (
-                <EchoCard key={encounter.id} encounter={encounter} />
-              ))}
+              {loading ? (
+                <div className="flex justify-center py-20">
+                  <span className="material-symbols-outlined text-4xl text-tertiary animate-spin">sync</span>
+                </div>
+              ) : encounters.length > 0 ? (
+                encounters.map(encounter => (
+                  <EchoCard key={encounter.id} encounter={encounter} />
+                ))
+              ) : (
+                <p className="text-center text-slate-500 py-20 uppercase tracking-widest text-sm">No ripples detected in the void yet.</p>
+              )}
             </div>
           </div>
 

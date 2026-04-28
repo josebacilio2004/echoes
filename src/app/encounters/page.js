@@ -1,36 +1,52 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import EchoCard from "@/components/EchoCard";
-
-const MOCK_DATA = [
-  {
-    id: 3,
-    user: {
-      handle: "Lunar_Watcher",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100",
-    },
-    content: "Someone was wearing a bright yellow raincoat at the Central Station. We made eye contact for 3 seconds. The train arrived too fast.",
-    time: "10:15 PM",
-    status: "VANISHED",
-    tags: ["STATION", "YELLOW"],
-  },
-  {
-    id: 4,
-    user: {
-      handle: "Cofee_Ghost",
-      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=100",
-    },
-    content: "Reading 'The Stranger' by Camus at the local cafe. You had a similar book. I should have said hello.",
-    time: "02:30 PM",
-    status: "RESISTED",
-    tags: ["CAFE", "LITERATURE"],
-  }
-];
+import { supabase } from "@/lib/supabase";
 
 export default function Encounters() {
+  const [encounters, setEncounters] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEncounters();
+  }, []);
+
+  async function fetchEncounters() {
+    try {
+      const { data, error } = await supabase
+        .from('encounters')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedData = data.map(item => ({
+        id: item.id,
+        user: {
+          handle: item.handle,
+          avatar: item.avatar || `https://ui-avatars.com/api/?name=${item.handle}&background=0D8ABC&color=fff`,
+        },
+        content: item.content,
+        time: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: item.status,
+        tags: item.tags,
+        track: item.track_video_id ? {
+          name: item.track_name,
+          artist: item.track_artist,
+          videoId: item.track_video_id
+        } : null
+      }));
+
+      setEncounters(formattedData);
+    } catch (error) {
+      console.error("Error fetching encounters:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <div className="flex-1 flex flex-col">
       <Navbar />
@@ -56,9 +72,17 @@ export default function Encounters() {
         </header>
 
         <div className="grid grid-cols-1 gap-6">
-          {MOCK_DATA.map(echo => (
-            <EchoCard key={echo.id} encounter={echo} />
-          ))}
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <span className="material-symbols-outlined text-4xl text-tertiary animate-spin">sync</span>
+            </div>
+          ) : encounters.length > 0 ? (
+            encounters.map(echo => (
+              <EchoCard key={echo.id} encounter={echo} />
+            ))
+          ) : (
+            <p className="text-center text-slate-500 py-20 uppercase tracking-widest text-sm">The void is silent today.</p>
+          )}
         </div>
       </main>
 
