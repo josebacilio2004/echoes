@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import EchoCard from "@/components/EchoCard";
+import EchoMap from "@/components/EchoMap";
 import { supabase } from "@/lib/supabase";
 
 export default function Home() {
@@ -35,6 +36,8 @@ export default function Home() {
         time: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: item.status,
         tags: item.tags,
+        lat: item.lat,
+        lng: item.lng,
         track: item.track_video_id ? {
           name: item.track_name,
           artist: item.track_artist,
@@ -54,15 +57,18 @@ export default function Home() {
       <Navbar />
       
       <main className="relative flex-1 pt-16 pb-24 overflow-hidden">
-        {/* Map Background Placeholder */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            alt="Cinematic dark map" 
-            className="w-full h-full object-cover opacity-30 brightness-50 grayscale hover:grayscale-0 transition-all duration-1000"
-            src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&q=80&w=1000"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
-        </div>
+        {/* Map Background Hero */}
+        <section className="h-[60vh] md:h-[70vh] w-full relative mb-12 px-4">
+          <EchoMap encounters={encounters} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-10 pointer-events-none">
+            <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-glow uppercase mb-4 opacity-80">
+              Echoes
+            </h1>
+            <p className="text-slate-400 text-sm md:text-base uppercase tracking-[0.4em] font-light">
+              Visualizing Global Resonance
+            </p>
+          </div>
+        </section>
 
         {/* Content Layer */}
         <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 flex flex-col md:flex-row gap-8">

@@ -13,6 +13,12 @@ export default function CreateEcho() {
   const [content, setContent] = useState("");
   const [vibe, setVibe] = useState(50);
   const [loading, setLoading] = useState(false);
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+  const [trackUrl, setTrackUrl] = useState("");
+  const [trackUrl, setTrackUrl] = useState("");
+  const [trackInfo, setTrackInfo] = useState({ name: "", artist: "" });
+  const [showTrackInput, setShowTrackInput] = useState(false);
 
   React.useEffect(() => {
     checkUser();
@@ -34,6 +40,28 @@ export default function CreateEcho() {
     videoId: "TY1id4Rowxg"
   });
 
+  const extractVideoId = (url) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const handleAddTrack = () => {
+    const id = extractVideoId(trackUrl);
+    if (id) {
+      setTrack({
+        name: trackInfo.name || "Unknown Echo",
+        artist: trackInfo.artist || "Atmosphere",
+        videoId: id
+      });
+      setShowTrackInput(false);
+      setTrackUrl("");
+      setTrackInfo({ name: "", artist: "" });
+    } else {
+      alert("Please enter a valid YouTube URL");
+    }
+  };
+
   const handleManifest = async () => {
     if (!content.trim()) return;
     
@@ -50,7 +78,9 @@ export default function CreateEcho() {
             track_name: track.name,
             track_artist: track.artist,
             track_video_id: track.videoId,
-            avatar: user.user_metadata.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`
+            avatar: user.user_metadata.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`,
+            lat: lat,
+            lng: lng
           }
         ]);
 
