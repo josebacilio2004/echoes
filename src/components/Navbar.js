@@ -54,9 +54,10 @@ const Navbar = () => {
             Reconnect
           </Link>
         )}
-        <button className="text-slate-400 hover:text-tertiary transition-colors">
+        <Link href="/messages" className="relative text-slate-400 hover:text-tertiary transition-colors group">
           <span className="material-symbols-outlined">notifications</span>
-        </button>
+          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-background animate-pulse"></span>
+        </Link>
       </div>
     </nav>
   );

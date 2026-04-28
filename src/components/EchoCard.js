@@ -1,18 +1,19 @@
+"use client";
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import YouTubePlayer from "./YouTubePlayer";
 import Link from "next/link";
 
 const EchoCard = ({ encounter }) => {
-  const { user, content, time, status, tags, track } = encounter;
+  const { user, content, time, status, tags, track, userId } = encounter;
   const [isSyncing, setIsSyncing] = useState(false);
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.01 }}
-      className="glass-card p-6 md:p-8 rounded-xl flex flex-col md:flex-row gap-6 hover:border-tertiary/30 transition-all duration-500"
+      className="glass-card p-6 md:p-8 rounded-3xl flex flex-col md:flex-row gap-6 border-white/5 hover:border-tertiary/30 transition-all duration-500"
     >
       {track?.videoId && (
         <YouTubePlayer 
@@ -21,106 +22,94 @@ const EchoCard = ({ encounter }) => {
         />
       )}
 
-      <div className="relative shrink-0">
-        <div className="w-16 h-16 rounded-full border-2 border-tertiary/50 p-1">
+      <div className="relative shrink-0 self-start">
+        <div className="w-16 h-16 rounded-2xl border-2 border-tertiary/30 p-1 bg-background overflow-hidden">
           <img
-            alt={user.name}
-            className="w-full h-full object-cover rounded-full"
+            alt={user.handle}
+            className="w-full h-full object-cover rounded-xl"
             src={user.avatar}
           />
         </div>
-        {status === "RESISTED" && (
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-tertiary rounded-full border-2 border-background flex items-center justify-center">
-            <span className="material-symbols-outlined text-[10px] text-background font-bold">
-              bolt
-            </span>
-          </div>
-        )}
+        <div className="absolute -top-2 -right-2 w-6 h-6 bg-slate-900 rounded-full flex items-center justify-center border border-white/10">
+          <span className="material-symbols-outlined text-xs text-tertiary">
+            {status === "RESISTED" ? "bolt" : "history"}
+          </span>
+        </div>
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-2">
-          <h4 className="text-lg font-semibold text-foreground tracking-tight">
-            {user.handle}
-          </h4>
-          <time className="text-xs text-slate-500 uppercase tracking-widest">
-            {time} · <span className={status === "RESISTED" ? "text-tertiary" : "text-slate-500"}>{status}</span>
+          <div className="flex flex-col">
+            <h4 className="text-lg font-black tracking-tighter text-foreground uppercase">
+              @{user.handle}
+            </h4>
+            <div className="flex gap-2 mt-1">
+              {tags?.map(tag => (
+                <span key={tag} className="text-[8px] font-bold text-slate-500 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+          <time className="text-[10px] text-slate-600 font-mono">
+            {time}
           </time>
         </div>
-        <p className="text-foreground/80 leading-relaxed mb-6">
+
+        <p className="text-slate-300 text-sm leading-relaxed mb-6 mt-2">
           {content}
         </p>
 
         {track && (
-          <div className={`group/track mb-6 flex items-center gap-4 p-4 rounded-2xl border transition-all duration-500 relative overflow-hidden ${
+          <div className={`mb-6 flex items-center gap-4 p-4 rounded-2xl border transition-all duration-500 relative overflow-hidden ${
             isSyncing 
-            ? "bg-red-500/10 border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.15)]" 
-            : "bg-black/40 border-white/5 hover:border-white/20 hover:bg-black/60"
+            ? "bg-red-500/10 border-red-500/40" 
+            : "bg-white/5 border-white/5"
           }`}>
-            {/* Animated Background Pulse */}
-            {isSyncing && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.1 }}
-                className="absolute inset-0 bg-red-500 blur-2xl"
-              />
-            )}
-
             <button 
               onClick={() => setIsSyncing(!isSyncing)}
-              className={`relative z-10 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 ${
-                isSyncing ? "bg-red-500 text-white" : "bg-white/5 text-slate-400 group-hover/track:bg-white/10 group-hover/track:text-red-500"
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                isSyncing ? "bg-red-500 text-white" : "bg-white/10 text-slate-400"
               }`}
             >
-              <span className={`material-symbols-outlined text-2xl ${isSyncing ? "animate-pulse" : ""}`}>
+              <span className="material-symbols-outlined text-xl">
                 {isSyncing ? "pause" : "play_arrow"}
               </span>
             </button>
-
-            <div className="relative z-10 flex-1 min-w-0">
-              <p className="text-xs font-black text-foreground truncate tracking-tight uppercase">
-                {track.name}
-              </p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mt-1 truncate">
-                {track.artist} · Atmosphere
-              </p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-black text-foreground truncate uppercase">{track.name}</p>
+              <p className="text-[8px] text-slate-600 uppercase tracking-widest truncate">{track.artist}</p>
             </div>
-
-            {isSyncing && (
-              <div className="flex gap-1 pr-2">
-                {[1, 2, 3].map((i) => (
-                  <motion.div
-                    key={i}
-                    animate={{ height: [4, 12, 4] }}
-                    transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
-                    className="w-1 bg-red-500/60 rounded-full"
-                  />
-                ))}
-              </div>
-            )}
           </div>
         )}
         
-        <div className="flex gap-4 items-center">
-          <div className="flex gap-2">
-            {tags?.map(tag => (
-              <span key={tag} className="px-2 py-1 bg-surface-container rounded-md text-[10px] text-slate-400 uppercase tracking-tighter">
-                {tag}
-              </span>
-            ))}
+        <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center">
+          <div className="flex gap-4">
+            <button className="flex items-center gap-2 text-slate-500 hover:text-tertiary transition-colors group">
+              <span className="material-symbols-outlined text-sm group-hover:animate-bounce">favorite</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest">Resonate</span>
+            </button>
+            
+            {userId && (
+              <Link href={`/messages/${userId}`} className="flex items-center gap-2 text-slate-500 hover:text-tertiary transition-colors group">
+                <span className="material-symbols-outlined text-sm">terminal</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest">Connect</span>
+              </Link>
+            )}
           </div>
+
           <button 
             onClick={() => setIsSyncing(!isSyncing)}
-            className={`ml-auto flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-full transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 text-[9px] font-black uppercase tracking-widest rounded-full transition-all ${
               isSyncing 
-                ? "bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]" 
+                ? "bg-red-500 text-white shadow-lg" 
                 : "bg-slate-800 text-tertiary hover:bg-slate-700"
             }`}
           >
-            <span className="material-symbols-outlined text-[18px]">
+            <span className="material-symbols-outlined text-sm">
               {isSyncing ? "graphic_eq" : "auto_awesome"}
             </span>
-            {isSyncing ? "Resonating..." : "Sync Resonance"}
+            {isSyncing ? "Resonating" : "Sync"}
           </button>
         </div>
       </div>
